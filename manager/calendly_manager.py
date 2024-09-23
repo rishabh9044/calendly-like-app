@@ -113,32 +113,31 @@ class UserManager:
         updated_ranges = []
 
         for existing_range in existing_ranges:
-            # Check if the existing range overlaps with the booked range
-            if existing_range['start_time'] >= end_time or existing_range['end_time'] <= start_time:
-                # No overlap, keep the existing range
-                updated_ranges.append(existing_range)
-            else:
-                # Overlap, split the existing range
-                if existing_range['start_time'] < start_time:
-                    # Add the portion before the booked range
-                    updated_ranges.append({'start_time': existing_range['start_time'], 'end_time': start_time})
+            if existing_range['start_time'] <= start_time and existing_range['end_time'] >= end_time:
+                # The requested time range is within an available time slot
+                for existing_range in existing_ranges:
+                    # Check if the existing range overlaps with the booked range
+                    if existing_range['start_time'] >= end_time or existing_range['end_time'] <= start_time:
+                        updated_ranges.append(existing_range)
+                    else:
+                        if existing_range['start_time'] < start_time:
+                            updated_ranges.append({'start_time': existing_range['start_time'], 'end_time': start_time})
 
-                if existing_range['end_time'] > end_time:
-                    # Add the portion after the booked range
-                    updated_ranges.append({'start_time': end_time, 'end_time': existing_range['end_time']})
+                        if existing_range['end_time'] > end_time:
+                            updated_ranges.append({'start_time': end_time, 'end_time': existing_range['end_time']})
 
-        if time_range in updated_ranges:
+                # The requested time range is available, proceed with booking
+                user.availability[date].time_list = updated_ranges
+                booked_meetings = user.get_booked_meetings()
+                if date not in booked_meetings:
+                    booked_meetings[date] = []
+                booking = Booking(date, [time_range], requestor_id)
+                booked_meetings[date].append(booking)
+                user.book_meeting(booked_meetings)
+                return {'message': 'Booking successful'}
+        else:
+            # The requested time range is not within any available time slot
             raise SlotNotAvailableException(f"The requested time slot {start_time} to {end_time} is not available")
-
-        user.availability[date].time_list = updated_ranges
-        booked_meetings = user.get_booked_meetings()
-        time_range = {'start_time': start_time, 'end_time': end_time}
-        if date not in booked_meetings:
-            booked_meetings[date] = []
-        booking = Booking(date, [time_range], requestor_id)
-        booked_meetings[date].append(booking)
-        user.book_meeting(booked_meetings)
-        return {'message': 'Booking successful'}
 
     def get_meetings(self, user_id):
         """

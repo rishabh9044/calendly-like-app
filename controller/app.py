@@ -74,11 +74,13 @@ class GetUser(Resource):
         try:
             user = user_manager.get_user(user_id)
             availability = user_manager.get_availability(user_id)
+            bookings = user_manager.get_meetings(user_id)
             return Response(json.dumps({
                 'user_id': user.get_user_id(),
                 'user_name': user.get_name(),
                 'phone_number': user.get_phone(),
-                'availability': availability
+                'availability': availability,
+                'bookings': bookings
             }, indent=4), status=200)
         except UserNotFoundException as e:
             return Response(json.dumps({"error": str(e)}), status=400)

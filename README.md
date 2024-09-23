@@ -46,6 +46,8 @@ Developed a calendly like app for P0 assignment. It has the following features/a
 ## Hosting Details
 This app is currently hosted on https://rish90444.pythonanywhere.com/
 
+Currently, onboarded 2 users with user_id 1, 2 (foo, bar)
+
 You can find below API details and their sample request/response schema
 
 ## API Endpoints
